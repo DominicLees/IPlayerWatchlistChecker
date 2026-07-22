@@ -7,14 +7,12 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	"os"
 )
 
 const port int = 8000
 
-func compare() {
-	// Open watchlist csv file
-	file, err := os.Open(os.Args[1])
+func results(w http.ResponseWriter, r *http.Request) {
+	file, _, err := r.FormFile("file")
 	if err != nil {
 		panic(err)
 	}
@@ -83,6 +81,7 @@ func compare() {
 		}
 		page++
 	}
+	fmt.Fprint(w, foundFilms)
 }
 
 func index() http.HandlerFunc {
@@ -94,6 +93,7 @@ func index() http.HandlerFunc {
 
 func main() {
 	http.HandleFunc("/", index())
+	http.HandleFunc("/results", results)
 	fmt.Printf("Server listening on port %d\n", port)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
