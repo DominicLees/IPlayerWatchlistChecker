@@ -1,16 +1,41 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 )
 
 func main() {
+	// Open watchlist csv file
+	file, err := os.Open(os.Args[1])
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	reader.Read() // skip header
+
+	// Read titles from watchlist
+	var watchlist []string
+	for {
+		row, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			panic(err)
+		}
+		watchlist = append(watchlist, row[1])
+	}
+
+	var foundFilms []string
 	page := 1
 	count := 0
-
 	for {
 		// Request next page of films
 		resp, err := http.Get(fmt.Sprintf("https://ibl.api.bbci.co.uk/ibl/v1/categories/films/programmes?per_page=200&page=%d", page))
@@ -36,16 +61,25 @@ func main() {
 		data := result["category_programmes"].(map[string]interface{})
 		films := data["elements"].([]interface{})
 
-		for _, film := range films {
-			filmData := film.(map[string]interface{})
-			count += 1
-			fmt.Printf("%d: %s\n", count, filmData["title"].(string))
+		// Check for films on watchlist
+		set := make(map[string]struct{}, len(films))
+		for _, f := range films {
+			filmObj := f.(map[string]interface{})
+			set[filmObj["title"].(string)] = struct{}{}
 		}
 
-		// count += len(films)
+		for _, s := range watchlist {
+			if _, found := set[s]; found {
+				foundFilms = append(foundFilms, s)
+			}
+		}
+
+		count += len(films)
 		if count >= int(data["count"].(float64)) {
 			break
 		}
 		page++
 	}
+
+	fmt.Println(foundFilms)
 }
