@@ -4,12 +4,15 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"os"
 )
 
-func main() {
+const port int = 8000
+
+func compare() {
 	// Open watchlist csv file
 	file, err := os.Open(os.Args[1])
 	if err != nil {
@@ -80,6 +83,17 @@ func main() {
 		}
 		page++
 	}
+}
 
-	fmt.Println(foundFilms)
+func index() http.HandlerFunc {
+	tmpl := template.Must(template.ParseFiles("templates/index.html"))
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmpl.Execute(w, r.URL.Query().Get("err"))
+	}
+}
+
+func main() {
+	http.HandleFunc("/", index())
+	fmt.Printf("Server listening on port %d\n", port)
+	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
