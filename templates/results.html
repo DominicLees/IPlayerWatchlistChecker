@@ -7,10 +7,11 @@
 </head>
 <body>
     <h1>Results</h1>
+    <h2>The following films in your watchlist are currently available on BBC iPlayer</h2>
     <ul>
         {{range .}}
             <li>
-                <a href="https://www.bbc.co.uk/iplayer/episodes/{{.id}}">{{.title}}</a>
+                <a target="_blank" href="https://www.bbc.co.uk/iplayer/episodes/{{.Id}}">{{.Title}}</a>
             </li>
         {{end}}
     </ul>
