@@ -11,6 +11,11 @@ import (
 
 const port int = 8000
 
+type iplayerFilm struct {
+	title string
+	id    string
+}
+
 func results(w http.ResponseWriter, r *http.Request) {
 	file, _, err := r.FormFile("file")
 	if err != nil {
@@ -34,7 +39,7 @@ func results(w http.ResponseWriter, r *http.Request) {
 		watchlist = append(watchlist, row[1])
 	}
 
-	var foundFilms []string
+	var foundFilms []iplayerFilm
 	page := 1
 	count := 0
 	for {
@@ -63,16 +68,19 @@ func results(w http.ResponseWriter, r *http.Request) {
 		films := data["elements"].([]interface{})
 
 		// Check for films on watchlist
-		set := make(map[string]struct{}, len(films))
-		for _, f := range films {
-			filmObj := f.(map[string]interface{})
-			set[filmObj["title"].(string)] = struct{}{}
+		watchSet := make(map[string]struct{}, len(watchlist))
+		for _, w := range watchlist {
+			watchSet[w] = struct{}{}
 		}
 
-		for _, s := range watchlist {
-			if _, found := set[s]; found {
-				foundFilms = append(foundFilms, s)
+		for _, f := range films {
+			filmObj := f.(map[string]interface{})
+			title := filmObj["title"].(string)
+			if _, found := watchSet[title]; !found {
+				continue
 			}
+			id := filmObj["id"].(string)
+			foundFilms = append(foundFilms, iplayerFilm{title: title, id: id})
 		}
 
 		count += len(films)
