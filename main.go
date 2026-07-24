@@ -105,6 +105,8 @@ func index() http.HandlerFunc {
 }
 
 func main() {
+	fs := http.FileServer(http.Dir("./static"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", index())
 	http.HandleFunc("/results", results())
 	fmt.Printf("Server listening on port %d\n", port)
