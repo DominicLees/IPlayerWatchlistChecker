@@ -109,6 +109,6 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", index())
 	http.HandleFunc("/results", results())
-	fmt.Printf("Server listening on port %d\n", port)
+	fmt.Printf("Server listening on http://localhost:%d/\n", port)
 	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 }
