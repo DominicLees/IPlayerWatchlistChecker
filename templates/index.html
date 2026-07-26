@@ -18,7 +18,13 @@
         <input type="submit" value="Check Films" />
     </form>
     {{if .}}
-        <h3 class="error">Please upload a .csv file</h3>
+        {{if eq . "file"}}
+            <h3 class="error">Please upload a .csv file</h3>
+        {{else if eq . "read"}}
+            <h3 class="error">Error while reading csv file</h3>
+        {{else if eq . "bbc"}}
+            <h3 class="error">Unable to retrieve films from iPlayer</h3>
+        {{end}}
     {{end}}
 </body>
 </html>

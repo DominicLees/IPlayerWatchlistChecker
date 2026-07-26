@@ -29,7 +29,8 @@ func results() http.HandlerFunc {
 			return
 		}
 		if err != nil {
-			panic(err)
+			http.Redirect(w, r, "/?err=read", 301)
+			return
 		}
 		defer file.Close()
 
@@ -44,7 +45,8 @@ func results() http.HandlerFunc {
 				break
 			}
 			if err != nil {
-				panic(err)
+				http.Redirect(w, r, "/?err=read", 301)
+				return
 			}
 			watchlist = append(watchlist, row[1])
 		}
@@ -56,21 +58,24 @@ func results() http.HandlerFunc {
 			// Request next page of films
 			resp, err := http.Get(fmt.Sprintf("https://ibl.api.bbci.co.uk/ibl/v1/categories/films/programmes?per_page=200&page=%d", page))
 			if err != nil {
-				panic(err)
+				http.Redirect(w, r, "/?err=bbc", 301)
+				return
 			}
 			defer resp.Body.Close()
 
 			// Read response body
 			body, err := io.ReadAll(resp.Body)
 			if err != nil {
-				panic(err)
+				http.Redirect(w, r, "/?err=bbc", 301)
+				return
 			}
 
 			// Decode JSON
 			var result map[string]interface{}
 			err = json.Unmarshal(body, &result)
 			if err != nil {
-				panic(err)
+				http.Redirect(w, r, "/?err=bbc", 301)
+				return
 			}
 
 			// Reduce to film data
