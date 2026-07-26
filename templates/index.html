@@ -17,5 +17,8 @@
         <br>
         <input type="submit" value="Check Films" />
     </form>
+    {{if .}}
+        <h3 class="error">Please upload a .csv file</h3>
+    {{end}}
 </body>
 </html>

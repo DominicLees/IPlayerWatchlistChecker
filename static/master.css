@@ -10,3 +10,7 @@ h1, h2, a, form {
 a, input, label {
     font-size: 18px;
 }
+
+.error {
+    color: red;
+}

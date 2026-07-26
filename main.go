@@ -7,6 +7,8 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"path/filepath"
+	"strings"
 )
 
 const port int = 8000
@@ -20,14 +22,19 @@ func results() http.HandlerFunc {
 	tmpl := template.Must(template.ParseFiles("templates/results.html"))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		file, _, err := r.FormFile("file")
+		file, header, err := r.FormFile("file")
+		// Check csv file was sent
+		if err == http.ErrMissingFile || strings.ToLower(filepath.Ext(header.Filename)) != ".csv" {
+			http.Redirect(w, r, "/?err=file", 301)
+			return
+		}
 		if err != nil {
 			panic(err)
 		}
 		defer file.Close()
 
 		reader := csv.NewReader(file)
-		reader.Read() // skip header
+		reader.Read() // Skip header
 
 		// Read titles from watchlist
 		var watchlist []string
