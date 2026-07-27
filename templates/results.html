@@ -8,13 +8,17 @@
 </head>
 <body>
     <h1>Results</h1>
-    <h2>The following films in your watchlist are currently available on BBC iPlayer</h2>
-    <ul>
-        {{range .}}
-            <li>
-                <a target="_blank" href="https://www.bbc.co.uk/iplayer/episodes/{{.Id}}">{{.Title}}</a>
-            </li>
-        {{end}}
-    </ul>
+    {{if not .}}
+        <h2>There are currently no films on your watchlist available on BBC iPlayer</h2>
+    {{else}}
+        <h2>The following films on your watchlist are currently available on BBC iPlayer</h2>
+        <ul>
+            {{range .}}
+                <li>
+                    <a target="_blank" href="https://www.bbc.co.uk/iplayer/episodes/{{.Id}}">{{.Title}}</a>
+                </li>
+            {{end}}
+        </ul>
+    {{end}}
 </body>
 </html>
