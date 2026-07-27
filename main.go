@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/csv"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"html/template"
 	"io"
@@ -10,8 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 )
-
-const port int = 8000
 
 type IPlayerFilm struct {
 	Title string
@@ -123,10 +122,15 @@ func index() http.HandlerFunc {
 }
 
 func main() {
+	port := flag.Int("port", 8000, "The port the server will listen on")
+	flag.Parse()
+
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", index())
 	http.HandleFunc("/results", results())
-	fmt.Printf("Server listening on http://localhost:%d/\n", port)
-	http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+
+	fmt.Printf("Server listening on http://localhost:%d/\n", *port)
+	err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
+	fmt.Println(err)
 }
