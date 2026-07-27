@@ -1,14 +1,11 @@
 package main
 
 import (
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"io"
 	"net/http"
-	"path/filepath"
-	"strings"
 )
 
 type IPlayerFilm struct {
@@ -32,27 +29,11 @@ func results() http.HandlerFunc {
 		}
 		defer file.Close()
 
-		// Check csv file was sent
-		if strings.ToLower(filepath.Ext(header.Filename)) != ".csv" {
-			http.Redirect(w, r, "/?err=file", 301)
+		watchlist, err := readWatchlistFile(file, header)
+		if err != nil {
+			http.Redirect(w, r, "/?err=read", 301)
+			fmt.Println(err)
 			return
-		}
-
-		reader := csv.NewReader(file)
-		reader.Read() // Skip header
-
-		// Read film titles from watchlist files
-		var watchlist []string
-		for {
-			row, err := reader.Read()
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				http.Redirect(w, r, "/?err=read", 301)
-				return
-			}
-			watchlist = append(watchlist, row[1])
 		}
 
 		var foundFilms []IPlayerFilm
