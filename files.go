@@ -24,9 +24,9 @@ func (e *ErrNotCSV) Error() string {
 	return e.message
 }
 
-func readWatchlistFile(file multipart.File, header *multipart.FileHeader) ([]string, error) {
+func readWatchlistFile(file multipart.File, filename string) ([]string, error) {
 	// Check csv file was passed
-	if strings.ToLower(filepath.Ext(header.Filename)) != ".csv" {
+	if strings.ToLower(filepath.Ext(filename)) != ".csv" {
 		return nil, &ErrNotCSV{"File does not have .csv extension"}
 	}
 

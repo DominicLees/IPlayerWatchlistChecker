@@ -22,7 +22,7 @@ func results() http.HandlerFunc {
 		}
 		defer file.Close()
 
-		watchlist, err := readWatchlistFile(file, header)
+		watchlist, err := readWatchlistFile(file, header.Filename)
 		if err != nil {
 			http.Redirect(w, r, "/?err=read", 301)
 			fmt.Println(err)
