@@ -23,21 +23,27 @@ func results() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		file, header, err := r.FormFile("file")
-		// Check csv file was sent
-		if err == http.ErrMissingFile || strings.ToLower(filepath.Ext(header.Filename)) != ".csv" {
-			http.Redirect(w, r, "/?err=file", 301)
-			return
-		}
 		if err != nil {
-			http.Redirect(w, r, "/?err=read", 301)
+			cause := "read"
+			if err == http.ErrMissingFile || err == http.ErrNotMultipart {
+				cause = "file"
+			}
+			http.Redirect(w, r, fmt.Sprintf("/?err=%s", cause), 301)
+			fmt.Println(err)
 			return
 		}
 		defer file.Close()
 
+		// Check csv file was sent
+		if strings.ToLower(filepath.Ext(header.Filename)) != ".csv" {
+			http.Redirect(w, r, "/?err=file", 301)
+			return
+		}
+
 		reader := csv.NewReader(file)
 		reader.Read() // Skip header
 
-		// Read titles from watchlist
+		// Read film titles from watchlist files
 		var watchlist []string
 		for {
 			row, err := reader.Read()
