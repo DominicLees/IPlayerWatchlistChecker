@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 )
 
 type IPlayerFilm struct {
@@ -38,10 +39,10 @@ func getIPlayerFilms(watchlist []string) ([]IPlayerFilm, error) {
 		if err != nil {
 			return nil, err
 		}
-		defer resp.Body.Close()
 
 		// Read response body
 		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
 		if err != nil {
 			return nil, err
 		}
@@ -83,29 +84,52 @@ func getIPlayerFilms(watchlist []string) ([]IPlayerFilm, error) {
 	return foundFilms, nil
 }
 
+var itemNameRegExp = regexp.MustCompile(`data-item-name="([^"]*)"`)
+var trailingYearRegExp = regexp.MustCompile(`\s\(\d{4}\)$`)
+
 func getLetterboxdWatchlist(username string) ([]string, error) {
-	resp, err := http.Get(fmt.Sprintf("https://letterboxd.com/%s/watchlist/", username))
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	switch resp.StatusCode {
-	case 404:
-		return nil, &ErrUserDoesNotExist{message: "User does not exist"}
-	case 403:
-		return nil, &ErrUserWatchlistPrivate{message: "User's watchlist is private"}
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	page := string(body)
-	fmt.Println(page)
-
-	// TODO: Get watchlist from html
 	var films []string
+	page := 1
+
+	for {
+		// Request next page of user's watchlist
+		url := fmt.Sprintf("https://letterboxd.com/%s/watchlist/page/%d/", username, page)
+
+		resp, err := http.Get(url)
+		if err != nil {
+			return nil, err
+		}
+
+		switch resp.StatusCode {
+		case 404:
+			resp.Body.Close()
+			return nil, &ErrUserDoesNotExist{message: "User does not exist"}
+		case 403:
+			resp.Body.Close()
+			return nil, &ErrUserWatchlistPrivate{message: "User's watchlist is private"}
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		// Get films from html
+		matches := itemNameRegExp.FindAllStringSubmatch(string(body), -1)
+		if len(matches) == 0 {
+			// Either we've gone past the last page, or the watchlist is empty.
+			break
+		}
+
+		for _, m := range matches {
+			// Remove year from end of film title
+			title := trailingYearRegExp.ReplaceAllString(m[1], "")
+			films = append(films, title)
+		}
+
+		page++
+	}
 
 	return films, nil
 }
