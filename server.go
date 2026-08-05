@@ -29,7 +29,7 @@ func results() http.HandlerFunc {
 			return
 		}
 
-		foundFilms, err := getFilms(watchlist)
+		foundFilms, err := getIPlayerFilms(watchlist)
 		if err != nil {
 			http.Redirect(w, r, "/?err=bbc", 301)
 			fmt.Println(err)

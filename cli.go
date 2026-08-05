@@ -17,7 +17,7 @@ func cli(path string) {
 		panic(err)
 	}
 
-	foundFilms, err := getFilms(watchlist)
+	foundFilms, err := getIPlayerFilms(watchlist)
 	if err != nil {
 		panic(err)
 	}

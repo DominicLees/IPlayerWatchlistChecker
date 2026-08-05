@@ -12,7 +12,7 @@ type IPlayerFilm struct {
 	Id    string
 }
 
-func getFilms(watchlist []string) ([]IPlayerFilm, error) {
+func getIPlayerFilms(watchlist []string) ([]IPlayerFilm, error) {
 	var foundFilms []IPlayerFilm
 	page := 1
 	count := 0
