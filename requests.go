@@ -20,6 +20,14 @@ func (e *ErrUserDoesNotExist) Error() string {
 	return e.message
 }
 
+type ErrUserWatchlistPrivate struct {
+	message string
+}
+
+func (e *ErrUserWatchlistPrivate) Error() string {
+	return e.message
+}
+
 func getIPlayerFilms(watchlist []string) ([]IPlayerFilm, error) {
 	var foundFilms []IPlayerFilm
 	page := 1
@@ -82,8 +90,11 @@ func getLetterboxdWatchlist(username string) ([]string, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 404 {
+	switch resp.StatusCode {
+	case 404:
 		return nil, &ErrUserDoesNotExist{message: "User does not exist"}
+	case 403:
+		return nil, &ErrUserWatchlistPrivate{message: "User's watchlist is private"}
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -93,6 +104,8 @@ func getLetterboxdWatchlist(username string) ([]string, error) {
 	page := string(body)
 	fmt.Println(page)
 
+	// TODO: Get watchlist from html
 	var films []string
+
 	return films, nil
 }
