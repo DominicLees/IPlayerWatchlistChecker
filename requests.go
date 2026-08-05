@@ -12,6 +12,14 @@ type IPlayerFilm struct {
 	Id    string
 }
 
+type ErrUserDoesNotExist struct {
+	message string
+}
+
+func (e *ErrUserDoesNotExist) Error() string {
+	return e.message
+}
+
 func getIPlayerFilms(watchlist []string) ([]IPlayerFilm, error) {
 	var foundFilms []IPlayerFilm
 	page := 1
@@ -65,4 +73,26 @@ func getIPlayerFilms(watchlist []string) ([]IPlayerFilm, error) {
 	}
 
 	return foundFilms, nil
+}
+
+func getLetterboxdWatchlist(username string) ([]string, error) {
+	resp, err := http.Get(fmt.Sprintf("https://letterboxd.com/%s/watchlist/", username))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == 404 {
+		return nil, &ErrUserDoesNotExist{message: "User does not exist"}
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	page := string(body)
+	fmt.Println(page)
+
+	var films []string
+	return films, nil
 }
