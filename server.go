@@ -6,6 +6,11 @@ import (
 	"net/http"
 )
 
+func returnToIndex(w http.ResponseWriter, r *http.Request, err error, cause string) {
+	http.Redirect(w, r, fmt.Sprintf("/?err=%s", cause), 303)
+	fmt.Println(err)
+}
+
 func index() http.HandlerFunc {
 	tmpl := template.Must(template.ParseFiles("templates/index.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -22,23 +27,20 @@ func resultsFromFile(w http.ResponseWriter, r *http.Request) {
 		if err == http.ErrMissingFile || err == http.ErrNotMultipart {
 			cause = "file"
 		}
-		http.Redirect(w, r, fmt.Sprintf("/?err=%s", cause), 301)
-		fmt.Println(err)
+		returnToIndex(w, r, err, cause)
 		return
 	}
 	defer file.Close()
 
 	watchlist, err := readWatchlistFile(file, header.Filename)
 	if err != nil {
-		http.Redirect(w, r, "/?err=read", 301)
-		fmt.Println(err)
+		returnToIndex(w, r, err, "read")
 		return
 	}
 
 	foundFilms, err := getIPlayerFilms(watchlist)
 	if err != nil {
-		http.Redirect(w, r, "/?err=bbc", 301)
-		fmt.Println(err)
+		returnToIndex(w, r, err, "bbc")
 		return
 	}
 
