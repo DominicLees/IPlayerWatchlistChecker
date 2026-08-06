@@ -23,12 +23,11 @@ var resultsTmpl = template.Must(template.ParseFiles("templates/results.html"))
 
 func resultsFromFile(w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile("file")
-	if err != nil {
-		cause := "read"
-		if err == http.ErrMissingFile || err == http.ErrNotMultipart {
-			cause = "file"
-		}
-		returnToIndex(w, r, err, cause)
+	if err == http.ErrMissingFile || err == http.ErrNotMultipart {
+		returnToIndex(w, r, err, "file")
+		return
+	} else if err != nil {
+		returnToIndex(w, r, err, "read")
 		return
 	}
 	defer file.Close()
