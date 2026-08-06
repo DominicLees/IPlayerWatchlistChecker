@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func results() http.HandlerFunc {
+func resultsFromFile() http.HandlerFunc {
 	tmpl := template.Must(template.ParseFiles("templates/results.html"))
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +51,7 @@ func server(port int) {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", index())
-	http.HandleFunc("/results", results())
+	http.HandleFunc("/results/file", resultsFromFile())
 
 	fmt.Printf("Server listening on http://localhost:%d/\n", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
