@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -47,12 +48,34 @@ func resultsFromFile(w http.ResponseWriter, r *http.Request) {
 	resultsTmpl.Execute(w, foundFilms)
 }
 
+func resultsFromUsername(w http.ResponseWriter, r *http.Request) {
+	watchlist, err := getLetterboxdWatchlist(r.FormValue("username"))
+	if err != nil {
+		if _, ok := errors.AsType[*ErrUserDoesNotExist](err); ok {
+			returnToIndex(w, r, err, "noUser")
+		} else if _, ok := errors.AsType[*ErrUserWatchlistPrivate](err); ok {
+			returnToIndex(w, r, err, "privateList")
+		} else {
+			returnToIndex(w, r, err, "letterboxd")
+		}
+		return
+	}
+
+	foundFilms, err := getIPlayerFilms(watchlist)
+	if err != nil {
+		returnToIndex(w, r, err, "bbc")
+		return
+	}
+
+	resultsTmpl.Execute(w, foundFilms)
+}
+
 func server(port int) {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", index())
 	http.HandleFunc("/results/file", resultsFromFile)
-	// http.HandleFunc("/results/username", resultsFromUsername)
+	http.HandleFunc("/results/username", resultsFromUsername)
 
 	fmt.Printf("Server listening on http://localhost:%d/\n", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)

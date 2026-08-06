@@ -15,7 +15,14 @@
         <input type="file" id="file" name="file" accept=".csv" />
         <br>
         <br>
-        <input type="submit" value="Check Films" />
+        <input type="submit" value="Check Films From File" />
+    </form>
+    <form method="post" action="/results/username" enctype="multipart/form-data">
+        <label for="username">Letterboxd Username</label>
+        <input type="text" id="username" name="username" />
+        <br>
+        <br>
+        <input type="submit" value="Check Films From Username" />
     </form>
     {{if .}}
         {{if eq . "file"}}
@@ -24,6 +31,12 @@
             <h3 class="error">Error while reading csv file</h3>
         {{else if eq . "bbc"}}
             <h3 class="error">Unable to retrieve films from iPlayer</h3>
+        {{else if eq . "noUser"}}
+            <h3 class="error">Letterboxd user does not exist</h3>
+        {{else if eq . "privateList"}}
+            <h3 class="error">Letterboxd watchlist is private</h3>
+        {{else if eq . "letterboxd"}}
+            <h3 class="error">Unable to connect to Letterboxd</h3>
         {{end}}
     {{end}}
 </body>
