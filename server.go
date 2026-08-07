@@ -1,11 +1,19 @@
 package main
 
 import (
+	"embed"
 	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
 )
+
+//go:embed templates/*.html
+var templateFS embed.FS
+var resultsTmpl = template.Must(template.ParseFS(templateFS, "templates/results.html"))
+
+//go:embed static
+var staticFS embed.FS
 
 func returnToIndex(w http.ResponseWriter, r *http.Request, err error, cause string) {
 	http.Redirect(w, r, fmt.Sprintf("/?err=%s", cause), 303)
@@ -13,13 +21,11 @@ func returnToIndex(w http.ResponseWriter, r *http.Request, err error, cause stri
 }
 
 func index() http.HandlerFunc {
-	tmpl := template.Must(template.ParseFiles("templates/index.html"))
+	tmpl := template.Must(template.ParseFS(templateFS, "templates/index.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		tmpl.Execute(w, r.URL.Query().Get("err"))
 	}
 }
-
-var resultsTmpl = template.Must(template.ParseFiles("templates/results.html"))
 
 func resultsFromFile(w http.ResponseWriter, r *http.Request) {
 	file, header, err := r.FormFile("file")
@@ -70,8 +76,8 @@ func resultsFromUsername(w http.ResponseWriter, r *http.Request) {
 }
 
 func server(port int) {
-	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	fs := http.FileServer(http.FS(staticFS))
+	http.Handle("/static/", fs)
 	http.HandleFunc("/", index())
 	http.HandleFunc("/results/file", resultsFromFile)
 	http.HandleFunc("/results/username", resultsFromUsername)
