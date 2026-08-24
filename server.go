@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os/exec"
+	"runtime"
 )
 
 //go:embed templates/*.html
@@ -24,6 +26,21 @@ func index() http.HandlerFunc {
 	tmpl := template.Must(template.ParseFS(templateFS, "templates/index.html"))
 	return func(w http.ResponseWriter, r *http.Request) {
 		tmpl.Execute(w, r.URL.Query().Get("err"))
+	}
+}
+
+func openInBrowser(url string) {
+	var err error
+	switch runtime.GOOS {
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	}
+	if err != nil {
+		fmt.Println(err)
 	}
 }
 
@@ -82,7 +99,10 @@ func server(port int) {
 	http.HandleFunc("/results/file", resultsFromFile)
 	http.HandleFunc("/results/username", resultsFromUsername)
 
-	fmt.Printf("Server listening on http://localhost:%d/\n", port)
+	url := fmt.Sprintf("http://localhost:%d/", port)
+	go openInBrowser(url)
+
+	fmt.Printf("Server listening on %s\n", url)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	fmt.Println(err)
 }
