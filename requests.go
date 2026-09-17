@@ -29,6 +29,14 @@ func (e *ErrUserWatchlistPrivate) Error() string {
 	return e.message
 }
 
+type ErrRateLimited struct {
+	message string
+}
+
+func (e *ErrRateLimited) Error() string {
+	return e.message
+}
+
 func getIPlayerFilmsOnWatchlist(watchlist []string) ([]IPlayerFilm, error) {
 	var foundFilms []IPlayerFilm
 	page := 1
@@ -107,6 +115,10 @@ func getLetterboxdWatchlist(username string) ([]string, error) {
 		case 403:
 			resp.Body.Close()
 			return nil, &ErrUserWatchlistPrivate{message: "User's watchlist is private"}
+		case 429:
+			errMsg := fmt.Sprintf("Rate limit reached. Retry after %ss", resp.Header.Get("Retry-After"))
+			resp.Body.Close()
+			return nil, &ErrRateLimited{message: errMsg}
 		}
 
 		body, err := io.ReadAll(resp.Body)
