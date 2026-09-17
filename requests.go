@@ -55,6 +55,15 @@ func getIPlayerFilmsOnWatchlist(watchlist []string) ([]IPlayerFilm, error) {
 		if err != nil {
 			return nil, err
 		}
+		switch {
+		case resp.StatusCode == 429:
+			errMsg := fmt.Sprintf("IPlayer rate limit reached. Retry after %ss", resp.Header.Get("Retry-After"))
+			resp.Body.Close()
+			return nil, &ErrRateLimited{message: errMsg}
+		case resp.StatusCode != 200:
+			resp.Body.Close()
+			return nil, &ErrResponseCode{message: "Unexpected response"}
+		}
 
 		// Read response body
 		body, err := io.ReadAll(resp.Body)
@@ -124,7 +133,7 @@ func getLetterboxdWatchlist(username string) ([]string, error) {
 			resp.Body.Close()
 			return nil, &ErrUserWatchlistPrivate{message: "User's watchlist is private"}
 		case resp.StatusCode == 429:
-			errMsg := fmt.Sprintf("Rate limit reached. Retry after %ss", resp.Header.Get("Retry-After"))
+			errMsg := fmt.Sprintf("Letterboxd rate limit reached. Retry after %ss", resp.Header.Get("Retry-After"))
 			resp.Body.Close()
 			return nil, &ErrRateLimited{message: errMsg}
 		case resp.StatusCode != 200:
