@@ -174,8 +174,13 @@ func getLetterboxdWatchlist(username string) ([]string, error) {
 	for {
 		// Request next page of user's watchlist
 		url := fmt.Sprintf("https://letterboxd.com/%s/watchlist/page/%d/", username, page)
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			return nil, err
+		}
+		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
 
-		resp, err := http.Get(url)
+		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			return nil, err
 		}
