@@ -61,7 +61,7 @@ func resultsFromFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	foundFilms, err := getIPlayerFilms(watchlist)
+	foundFilms, err := getIPlayerFilmsOnWatchlist(watchlist)
 	if err != nil {
 		returnToIndex(w, r, err, "bbc")
 		return
@@ -83,7 +83,7 @@ func resultsFromUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	foundFilms, err := getIPlayerFilms(watchlist)
+	foundFilms, err := getIPlayerFilmsOnWatchlist(watchlist)
 	if err != nil {
 		returnToIndex(w, r, err, "bbc")
 		return

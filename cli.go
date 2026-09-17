@@ -6,7 +6,7 @@ import (
 )
 
 func printFoundFilms(watchlist []string) {
-	films, err := getIPlayerFilms(watchlist)
+	films, err := getIPlayerFilmsOnWatchlist(watchlist)
 	if err != nil {
 		panic(err)
 	}

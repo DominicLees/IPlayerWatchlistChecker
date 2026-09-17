@@ -29,7 +29,7 @@ func (e *ErrUserWatchlistPrivate) Error() string {
 	return e.message
 }
 
-func getIPlayerFilms(watchlist []string) ([]IPlayerFilm, error) {
+func getIPlayerFilmsOnWatchlist(watchlist []string) ([]IPlayerFilm, error) {
 	var foundFilms []IPlayerFilm
 	page := 1
 	count := 0
