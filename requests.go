@@ -45,6 +45,9 @@ func (e *ErrResponseCode) Error() string {
 	return e.message
 }
 
+var itemNameRegExp = regexp.MustCompile(`data-item-name="([^"]*)"`)
+var trailingYearRegExp = regexp.MustCompile(`\s\(\d{4}\)$`)
+
 func getIPlayerFilmsOnWatchlist(watchlist []string) ([]IPlayerFilm, error) {
 	var foundFilms []IPlayerFilm
 	page := 1
@@ -61,8 +64,9 @@ func getIPlayerFilmsOnWatchlist(watchlist []string) ([]IPlayerFilm, error) {
 			resp.Body.Close()
 			return nil, &ErrRateLimited{message: errMsg}
 		case resp.StatusCode != 200:
+			errMsg := fmt.Sprintf("Unexpected %d response code", resp.StatusCode)
 			resp.Body.Close()
-			return nil, &ErrResponseCode{message: "Unexpected response"}
+			return nil, &ErrResponseCode{message: errMsg}
 		}
 
 		// Read response body
@@ -109,8 +113,52 @@ func getIPlayerFilmsOnWatchlist(watchlist []string) ([]IPlayerFilm, error) {
 	return foundFilms, nil
 }
 
-var itemNameRegExp = regexp.MustCompile(`data-item-name="([^"]*)"`)
-var trailingYearRegExp = regexp.MustCompile(`\s\(\d{4}\)$`)
+func getIPlayerFilms(page int) ([]IPlayerFilm, error) {
+	resp, err := http.Get(fmt.Sprintf("https://ibl.api.bbci.co.uk/ibl/v1/categories/films/programmes?per_page=50&page=%d", page))
+	if err != nil {
+		return nil, err
+	}
+	switch {
+	case resp.StatusCode == 429:
+		errMsg := fmt.Sprintf("IPlayer rate limit reached. Retry after %ss", resp.Header.Get("Retry-After"))
+		resp.Body.Close()
+		return nil, &ErrRateLimited{message: errMsg}
+	case resp.StatusCode != 200:
+		errMsg := fmt.Sprintf("Unexpected %d response code", resp.StatusCode)
+		resp.Body.Close()
+		return nil, &ErrResponseCode{message: errMsg}
+	}
+
+	// Read response body
+	body, err := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	// Decode JSON
+	var result map[string]interface{}
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	// Reduce to film data
+	data := result["category_programmes"].(map[string]interface{})
+	films := data["elements"].([]interface{})
+
+	// Convert JSON film data to IPlayerFilm array
+	var foundFilms []IPlayerFilm
+	for _, f := range films {
+		filmObj := f.(map[string]interface{})
+		title := filmObj["title"].(string)
+		fmt.Println(title)
+		id := filmObj["id"].(string)
+		foundFilms = append(foundFilms, IPlayerFilm{Title: title, Id: id})
+	}
+
+	return foundFilms, nil
+}
 
 func getLetterboxdWatchlist(username string) ([]string, error) {
 	var films []string
