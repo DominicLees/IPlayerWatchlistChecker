@@ -17,7 +17,18 @@ var tmpl = template.Must(template.ParseFS(templateFS, "templates/*.html"))
 //go:embed static
 var staticFS embed.FS
 
-func returnToIndex(w http.ResponseWriter, r *http.Request, err error, cause string) {
+type indexPageErrorMsg string // Values /?error= can be set to that will cause a relevant error message to appear on the index page
+
+const (
+	File        indexPageErrorMsg = "file"
+	Read        indexPageErrorMsg = "read"
+	BBC         indexPageErrorMsg = "bbc"
+	NoUser      indexPageErrorMsg = "noUser"
+	PrivateList indexPageErrorMsg = "privateList"
+	Letterboxd  indexPageErrorMsg = "letterboxd"
+)
+
+func returnToIndex(w http.ResponseWriter, r *http.Request, err error, cause indexPageErrorMsg) {
 	http.Redirect(w, r, fmt.Sprintf("/?err=%s", cause), 303)
 	fmt.Println(err)
 }
