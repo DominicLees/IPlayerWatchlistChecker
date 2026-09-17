@@ -37,6 +37,14 @@ func (e *ErrRateLimited) Error() string {
 	return e.message
 }
 
+type ErrResponseCode struct {
+	message string
+}
+
+func (e *ErrResponseCode) Error() string {
+	return e.message
+}
+
 func getIPlayerFilmsOnWatchlist(watchlist []string) ([]IPlayerFilm, error) {
 	var foundFilms []IPlayerFilm
 	page := 1
@@ -108,17 +116,20 @@ func getLetterboxdWatchlist(username string) ([]string, error) {
 			return nil, err
 		}
 
-		switch resp.StatusCode {
-		case 404:
+		switch {
+		case resp.StatusCode == 404:
 			resp.Body.Close()
 			return nil, &ErrUserDoesNotExist{message: "User does not exist"}
-		case 403:
+		case resp.StatusCode == 403:
 			resp.Body.Close()
 			return nil, &ErrUserWatchlistPrivate{message: "User's watchlist is private"}
-		case 429:
+		case resp.StatusCode == 429:
 			errMsg := fmt.Sprintf("Rate limit reached. Retry after %ss", resp.Header.Get("Retry-After"))
 			resp.Body.Close()
 			return nil, &ErrRateLimited{message: errMsg}
+		case resp.StatusCode != 200:
+			resp.Body.Close()
+			return nil, &ErrResponseCode{message: "Unexpected response"}
 		}
 
 		body, err := io.ReadAll(resp.Body)
