@@ -22,13 +22,6 @@ func returnToIndex(w http.ResponseWriter, r *http.Request, err error, cause stri
 	fmt.Println(err)
 }
 
-func index(w http.ResponseWriter, r *http.Request) {
-	err := tmpl.ExecuteTemplate(w, "index.html", r.URL.Query().Get("err"))
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
 func openInBrowser(url string) {
 	var err error
 	switch runtime.GOOS {
@@ -39,6 +32,25 @@ func openInBrowser(url string) {
 	case "linux":
 		err = exec.Command("xdg-open", url).Start()
 	}
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func index(w http.ResponseWriter, r *http.Request) {
+	err := tmpl.ExecuteTemplate(w, "index.html", r.URL.Query().Get("err"))
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func browse(w http.ResponseWriter, r *http.Request) {
+	films, err := getIPlayerFilms(1, Recent)
+	if err != nil {
+		returnToIndex(w, r, err, "bbc")
+	}
+
+	err = tmpl.ExecuteTemplate(w, "browse.html", films)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -99,9 +111,13 @@ func resultsFromUsername(w http.ResponseWriter, r *http.Request) {
 }
 
 func server(port int) {
+	// Server static files
 	fs := http.FileServer(http.FS(staticFS))
 	http.Handle("/static/", fs)
+
+	// Routes
 	http.HandleFunc("/", index)
+	http.HandleFunc("/browse", browse)
 	http.HandleFunc("/results/file", resultsFromFile)
 	http.HandleFunc("/results/username", resultsFromUsername)
 

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBC IPlayer Checker</title>
+    <link rel="stylesheet" href="/static/master.css" type="text/css" />
+</head>
+<body>
+    {{ template "navbar.html" . }}
+    <h1>Browse Films available on IPlayer</h1>
+    <ul>
+        {{range .}}
+            <li>
+                <a target="_blank" href="https://www.bbc.co.uk/iplayer/episodes/{{.Id}}">{{.Title}}</a>
+            </li>
+        {{end}}
+    </ul>
+</body>
