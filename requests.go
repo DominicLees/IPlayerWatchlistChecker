@@ -13,6 +13,13 @@ type IPlayerFilm struct {
 	Id    string
 }
 
+type sortBy string
+
+const (
+	Recent sortBy = "recent"
+	Title  sortBy = "title"
+)
+
 type ErrUserDoesNotExist struct {
 	message string
 }
@@ -113,8 +120,8 @@ func getIPlayerFilmsOnWatchlist(watchlist []string) ([]IPlayerFilm, error) {
 	return foundFilms, nil
 }
 
-func getIPlayerFilms(page int) ([]IPlayerFilm, error) {
-	resp, err := http.Get(fmt.Sprintf("https://ibl.api.bbci.co.uk/ibl/v1/categories/films/programmes?per_page=50&page=%d", page))
+func getIPlayerFilms(page int, sort sortBy) ([]IPlayerFilm, error) {
+	resp, err := http.Get(fmt.Sprintf("https://ibl.api.bbci.co.uk/ibl/v1/categories/films/programmes?per_page=50&page=%d&sort=%s", page, sort))
 	if err != nil {
 		return nil, err
 	}
