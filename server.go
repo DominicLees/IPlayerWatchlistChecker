@@ -12,7 +12,7 @@ import (
 
 //go:embed templates/*.html
 var templateFS embed.FS
-var resultsTmpl = template.Must(template.ParseFS(templateFS, "templates/results.html"))
+var tmpl = template.Must(template.ParseFS(templateFS, "templates/*.html"))
 
 //go:embed static
 var staticFS embed.FS
@@ -22,10 +22,10 @@ func returnToIndex(w http.ResponseWriter, r *http.Request, err error, cause stri
 	fmt.Println(err)
 }
 
-func index() http.HandlerFunc {
-	tmpl := template.Must(template.ParseFS(templateFS, "templates/index.html"))
-	return func(w http.ResponseWriter, r *http.Request) {
-		tmpl.Execute(w, r.URL.Query().Get("err"))
+func index(w http.ResponseWriter, r *http.Request) {
+	err := tmpl.ExecuteTemplate(w, "index.html", r.URL.Query().Get("err"))
+	if err != nil {
+		fmt.Println(err)
 	}
 }
 
@@ -67,7 +67,10 @@ func resultsFromFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resultsTmpl.Execute(w, foundFilms)
+	err = tmpl.ExecuteTemplate(w, "results.html", foundFilms)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func resultsFromUsername(w http.ResponseWriter, r *http.Request) {
@@ -89,13 +92,16 @@ func resultsFromUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resultsTmpl.Execute(w, foundFilms)
+	err = tmpl.ExecuteTemplate(w, "results.html", foundFilms)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func server(port int) {
 	fs := http.FileServer(http.FS(staticFS))
 	http.Handle("/static/", fs)
-	http.HandleFunc("/", index())
+	http.HandleFunc("/", index)
 	http.HandleFunc("/results/file", resultsFromFile)
 	http.HandleFunc("/results/username", resultsFromUsername)
 
