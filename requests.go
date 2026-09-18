@@ -159,7 +159,6 @@ func getIPlayerFilms(page int, sort sortBy) ([]IPlayerFilm, error) {
 	for _, f := range films {
 		filmObj := f.(map[string]interface{})
 		title := filmObj["title"].(string)
-		fmt.Println(title)
 		id := filmObj["id"].(string)
 		foundFilms = append(foundFilms, IPlayerFilm{Title: title, Id: id})
 	}
