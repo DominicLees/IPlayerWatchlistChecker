@@ -20,6 +20,15 @@ const (
 	Title  sortBy = "title"
 )
 
+func parseSortBy(s string) sortBy {
+	switch s {
+	case string(Recent), string(Title):
+		return sortBy(s)
+	default:
+		return Title
+	}
+}
+
 type ErrUserDoesNotExist struct {
 	message string
 }
