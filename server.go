@@ -63,7 +63,12 @@ func browse(w http.ResponseWriter, r *http.Request) {
 		page = 1
 	}
 
-	films, err := getIPlayerFilms(page, Recent)
+	sort := parseSortBy(r.URL.Query().Get("sort"))
+	if sort == "" {
+		sort = Recent
+	}
+
+	films, err := getIPlayerFilms(page, sort)
 	if err != nil {
 		returnToIndex(w, r, err, "bbc")
 	}
