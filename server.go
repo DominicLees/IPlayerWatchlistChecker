@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os/exec"
 	"runtime"
+	"strconv"
 )
 
 //go:embed templates/*.html
@@ -56,7 +57,13 @@ func index(w http.ResponseWriter, r *http.Request) {
 }
 
 func browse(w http.ResponseWriter, r *http.Request) {
-	films, err := getIPlayerFilms(1, Recent)
+	// Get query values
+	page, err := strconv.Atoi(r.URL.Query().Get("page")) // Atoi Returns 0 if page is null
+	if page <= 0 || err != nil {
+		page = 1
+	}
+
+	films, err := getIPlayerFilms(page, Recent)
 	if err != nil {
 		returnToIndex(w, r, err, "bbc")
 	}
@@ -122,7 +129,7 @@ func resultsFromUsername(w http.ResponseWriter, r *http.Request) {
 }
 
 func server(port int) {
-	// Server static files
+	// Serve static files
 	fs := http.FileServer(http.FS(staticFS))
 	http.Handle("/static/", fs)
 
